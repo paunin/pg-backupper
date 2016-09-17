@@ -1,0 +1,70 @@
+version: '2'
+networks:
+    cluster:
+        driver: bridge
+volumes:
+    cluster-archives:
+        driver: local
+
+services:
+    postgres:
+        image: 'postgres:9.5.4'
+        environment:
+            POSTGRES_USER: 'postgres'
+            POSTGRES_PASSWORD: 'postgres_pass'
+            POSTGRES_DB: 'postgres_db'
+
+        ports:
+            - 5432:5432
+        networks:
+            cluster:
+                aliases:
+                    - pg_host
+
+    backupper:
+#        image: paunin/pg-backupper
+        build:
+            context: .
+        volumes:
+            - "cluster-archives:/data"
+        environment:
+            BACKUP_NAME_1: test_backup
+            SCHEDULE_1: '* * * * *'
+            BACKUP_DB_HOST_1: 'pg_host'
+            BACKUP_DB_PORT_1: '5432'
+            BACKUP_DB_NAME_1: 'template1'
+            BACKUP_DB_USER_1: 'postgres'
+            BACKUP_DB_PASSWORD_1: 'postgres_pass'
+            BACKUP_OPTIONS_1: '--compress=9 --verbose'
+            BACKUP_DIR_1: '/data/backup1'
+
+            BACKUP_NAME_2: test_backup2
+            SCHEDULE_2: '*/2 * * * *'
+            BACKUP_DB_HOST_2: 'pg_host'
+            BACKUP_DB_NAME_2: 'template1'
+            BACKUP_DB_USER_2: 'postgres'
+            BACKUP_DB_PASSWORD_2: 'postgres_pass'
+            BACKUP_OPTIONS_2: ''
+            BACKUP_DIR_2: '/data/backup2'
+
+            BACKUP_NAME_3: test_backup3
+            SCHEDULE_3: '*/3 * * * *'
+            BACKUP_DB_HOST_3: 'pg_host'
+            BACKUP_DB_NAME_3: 'postgres_db'
+            BACKUP_DB_USER_3: 'postgres'
+            BACKUP_DB_PASSWORD_3: 'postgres_pass'
+            BACKUP_OPTIONS_3: '-C --compress=9'
+            BACKUP_DIR_3: '/data/backup3'
+
+            BACKUP_NAME_4: test_backup4
+            SCHEDULE_4: '* * * * *'
+            BACKUP_DB_HOST_4: 'pg_host'
+            BACKUP_DB_NAME_4: 'unexist_db'
+            BACKUP_DB_USER_4: 'postgres'
+            BACKUP_DB_PASSWORD_4: 'postgres_pass'
+            BACKUP_OPTIONS_4: '-C --compress=9'
+            BACKUP_DIR_4: '/data/backup4'
+        networks:
+            cluster:
+                aliases:
+                    - backupper
