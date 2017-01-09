@@ -9,4 +9,5 @@ ENV ENV_FILE "/env.sh"
 RUN touch $ENV_FILE && chmod +x $ENV_FILE
 
 ADD bin /backupper_bin
+WORKDIR /backupper_bin
 CMD /backupper_bin/entrypoint.sh

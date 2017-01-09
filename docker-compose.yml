@@ -27,6 +27,8 @@ services:
             context: .
         volumes:
             - "cluster-archives:/data"
+        volumes_from:
+            - sources # only for DEV mode.
         environment:
             BACKUP_NAME_1: test_backup
             SCHEDULE_1: '* * * * *'
@@ -68,3 +70,7 @@ services:
             cluster:
                 aliases:
                     - backupper
+    sources:
+        image: ubuntu
+        volumes:
+            - ./bin/:/backupper_bin:rw

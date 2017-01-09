@@ -1,5 +1,4 @@
 <?php
-
 set_time_limit(0);
 /**
  * I Would never use php in this project...but strtotime function solves a lot of problems.
@@ -62,19 +61,32 @@ echo "\n   > " . implode("\n   > ", $safeWeeksPatterns) . "\n";
 
 echo " > Will keep files from last $safeMonths month(s) by patterns for date $safeMonthDate:";
 $safeMonthsPatterns = [];
-for ($i = 0; $i < $safeWeeks; $i++) {
+for ($i = 0; $i < $safeMonths; $i++) {
     $safeMonthsPatterns[] = $backupPrefix . date("Y-m-{$safeMonthDate}_*", strtotime("$i months ago"));
 }
 echo "\n   > " . implode("\n   > ", $safeMonthsPatterns) . "\n";
 
 
+// Yesterday is really special day!
+// So we need to make sure non of patterns will try to keep more then required for yesterday
+$patterns  = array_merge($todayPatterns, $safeDaysPatterns, $safeWeeksPatterns, $safeMonthsPatterns);
+foreach ($patterns as $key => $pattern){
+    if (strpos($pattern, $yesterdayPattern) === 0){
+        unset ($patterns[$key]);
+    }
+}
+$patterns = array_unique(array_merge($patterns, $yesterdayPatterns));
+sort($patterns);
 
+echo " > Final list of patterns I will keep:";
+echo "\n   > " . implode("\n   > ", $patterns) . "\n";
 
-$patterns  = array_merge($todayPatterns, $yesterdayPatterns, $safeDaysPatterns, $safeWeeksPatterns, $safeMonthsPatterns);
 $safeFiles = [];
 foreach ($patterns as $pattern) {
     exec("find / -wholename '$pattern'", $safeFiles);
 }
+$safeFiles = array_unique($safeFiles);
+
 echo " > OK! Now will remove all files except this list(files exist in FS):";
 if (count($safeFiles)) {
     echo "\n   > " . implode("\n   > ", $safeFiles) . "\n";
